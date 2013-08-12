@@ -14,16 +14,25 @@ module.exports = function(grunt) {
   var Faker = require('Faker');
 
   //Loop through entire json object
-  function processJson(obj) {
-    for (var i in obj) {
-      if (typeof(obj[i]) === "object") {
-        processJson(obj[i]); // found an obj or array keep digging
-      } else if (obj[i] !== null){
-        obj[i] = getFunctionNameAndArgs(obj[i]);// not an obj or array, check contents
-      }
+ function processJson(obj) {
+        for (var i in obj) {
+            if (typeof(obj[i]) === "object") {
+                if (obj[i].length && obj[i][0]["repeat"]!= undefined) {
+                    var newObj=[],count=obj[i][0]["repeat"];
+                    delete obj[i][0]["repeat"];
+                    for (var k = 0; k < count; k++) {
+                        newObj.push(processJson(_.clone(obj[i][0])));
+                    }
+                    obj[i]=newObj;
+                } else{
+                    processJson(obj[i]); // found an obj or array keep digging
+                }
+            } else if (obj[i] !== null){
+                obj[i] = getFunctionNameAndArgs(obj[i]);// not an obj or array, check contents
+            }
+        }
+        return obj;
     }
-    return obj;
-  }
 
   // Get func name, extract args, and exec on their values
   function getFunctionNameAndArgs(value) {
